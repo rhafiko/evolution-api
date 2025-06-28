@@ -4,19 +4,29 @@ on:
     branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
+
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
-    - name: Login to dockerhub
+    
+    - name: Login to DockerHub
       uses: docker/login-action@v3
       with:
-       username: ${{ secrets.DOCKERHUB_USERNAME }}
-       password: ${{ secrets.DOCKERHUB_TOKEN }}    
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
+    
+    # Solução 1: Usar docker/build-push-action (RECOMENDADO)
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+    
     - name: Build and push Docker image
-      run: |
-        docker build . --file Dockerfile --tag rhafiko/evolutionapi:latest
-        docker build . --file Dockerfile --tag rhafiko/evolutionapi:v2.3.0
-        docker push rhafiko/evolutionapi:latest
-        docker push rhafiko/evolutionapi:$(date +%s)
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        file: ./Dockerfile
+        push: true
+        tags: |
+          rhafiko/evolutionapi:latest
+          rhafiko/evolutionapi:v2.3.0
